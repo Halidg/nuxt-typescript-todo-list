@@ -19,6 +19,10 @@ onMounted(() => {
     store.hydrate();
   }
 });
+
+function setTodoCompleted(noteId: string, todoId: string, completed: boolean): void {
+  store.setTodoCompleted(noteId, todoId, completed);
+}
 </script>
 
 <template>
@@ -31,7 +35,7 @@ onMounted(() => {
       <CreateNoteButton />
     </header>
 
-    <NotesList v-if="notes.length > 0" :notes="notes" />
+    <NotesList v-if="notes.length > 0" :notes="notes" @toggle-todo="setTodoCompleted" />
 
     <section v-else class="empty-state">
       <div class="empty-state__inner">

@@ -105,5 +105,30 @@ export const useNotesStore = defineStore('notes', {
       this.notes = this.notes.filter((note) => note.id !== noteId);
       this.persist();
     },
+
+    setTodoCompleted(noteId: string, todoId: string, completed: boolean) {
+      let changed = false;
+
+      this.notes = this.notes.map((note) => {
+        if (note.id !== noteId) {
+          return note;
+        }
+
+        const todos = note.todos.map((todo) => {
+          if (todo.id !== todoId || todo.completed === completed) {
+            return todo;
+          }
+
+          changed = true;
+          return { ...todo, completed };
+        });
+
+        return changed ? { ...note, todos, updatedAt: new Date().toISOString() } : note;
+      });
+
+      if (changed) {
+        this.persist();
+      }
+    },
   },
 });

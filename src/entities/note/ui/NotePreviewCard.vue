@@ -6,9 +6,17 @@ const props = defineProps<{
   note: Note;
 }>();
 
+const emit = defineEmits<{
+  toggleTodo: [noteId: string, todoId: string, completed: boolean];
+}>();
+
 const previewTodos = computed(() => props.note.todos.slice(0, 4));
 const hiddenTodosCount = computed(() => Math.max(0, props.note.todos.length - previewTodos.value.length));
 const completedCount = computed(() => props.note.todos.filter((todo) => todo.completed).length);
+
+function readCheckboxValue(event: Event): boolean {
+  return event.target instanceof HTMLInputElement ? event.target.checked : false;
+}
 </script>
 
 <template>
@@ -25,7 +33,13 @@ const completedCount = computed(() => props.note.todos.filter((todo) => todo.com
 
     <ul v-if="previewTodos.length" class="note-card__todos" aria-label="Список задач">
       <li v-for="todo in previewTodos" :key="todo.id" class="note-card__todo">
-        <span class="note-card__checkbox" :class="{ 'note-card__checkbox--checked': todo.completed }" aria-hidden="true" />
+        <input
+          class="note-card__checkbox"
+          type="checkbox"
+          :checked="todo.completed"
+          :aria-label="`Отметить задачу: ${todo.text || 'Новая задача'}`"
+          @change="emit('toggleTodo', note.id, todo.id, readCheckboxValue($event))"
+        />
         <span class="note-card__todo-text" :class="{ 'note-card__todo-text--done': todo.completed }">
           {{ todo.text || 'Новая задача' }}
         </span>
@@ -93,15 +107,27 @@ const completedCount = computed(() => props.note.todos.filter((todo) => todo.com
 }
 
 .note-card__checkbox {
+  appearance: none;
   display: block;
   width: 18px;
   height: 18px;
+  margin: 0;
   border: 2px solid #9eb0aa;
   border-radius: 5px;
   background: #fff;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(46, 126, 163, 0.18);
+  }
 }
 
-.note-card__checkbox--checked {
+.note-card__checkbox:checked {
   border-color: var(--accent);
   background:
     linear-gradient(135deg, transparent 42%, #fff 43% 56%, transparent 57%),

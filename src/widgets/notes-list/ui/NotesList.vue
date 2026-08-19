@@ -7,11 +7,24 @@ import DeleteNoteButton from '~/features/delete-note/ui/DeleteNoteButton.vue';
 defineProps<{
   notes: Note[];
 }>();
+
+const emit = defineEmits<{
+  toggleTodo: [noteId: string, todoId: string, completed: boolean];
+}>();
+
+function handleToggleTodo(noteId: string, todoId: string, completed: boolean): void {
+  emit('toggleTodo', noteId, todoId, completed);
+}
 </script>
 
 <template>
   <div class="notes-grid">
-    <NotePreviewCard v-for="note in notes" :key="note.id" :note="note">
+    <NotePreviewCard
+      v-for="note in notes"
+      :key="note.id"
+      :note="note"
+      @toggle-todo="handleToggleTodo"
+    >
       <template #actions="{ note: currentNote }">
         <div class="notes-grid__actions">
           <NuxtLink class="notes-grid__edit" :to="`/notes/${currentNote.id}`" aria-label="Изменить заметку">

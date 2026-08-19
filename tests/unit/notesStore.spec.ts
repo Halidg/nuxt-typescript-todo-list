@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { NOTES_STORAGE_KEY, parseNotesPayload, useNotesStore } from '~/entities/note/model/notesStore';
 import type { Note } from '~/entities/note/model/types';
@@ -17,6 +17,10 @@ describe('notes store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('persists notes with schema version only on explicit store actions', () => {
@@ -81,6 +85,30 @@ describe('notes store', () => {
     expect(JSON.parse(window.localStorage.getItem(NOTES_STORAGE_KEY) ?? '{}')).toEqual({
       version: 1,
       notes: [],
+    });
+  });
+
+  it('updates todo completion from previews and persists the note', () => {
+    const store = useNotesStore();
+    const note = makeNote();
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-19T12:00:00.000Z'));
+
+    store.upsertNote(note);
+    store.setTodoCompleted(note.id, 'todo_1', true);
+
+    expect(store.notes[0]?.todos[0]?.completed).toBe(true);
+    expect(store.notes[0]?.updatedAt).toBe('2026-08-19T12:00:00.000Z');
+    expect(JSON.parse(window.localStorage.getItem(NOTES_STORAGE_KEY) ?? '{}')).toEqual({
+      version: 1,
+      notes: [
+        {
+          ...note,
+          updatedAt: '2026-08-19T12:00:00.000Z',
+          todos: [{ id: 'todo_1', text: 'Persist me', completed: true }],
+        },
+      ],
     });
   });
 
