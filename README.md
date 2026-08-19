@@ -25,12 +25,24 @@ SPA-приложение на Nuxt 3 для заметок со списками
 
 Нужен Node.js 22 или новее.
 
+Основной вариант:
+
 ```bash
 pnpm install
 pnpm dev
 pnpm test
 pnpm typecheck
 pnpm build
+```
+
+Если `pnpm` не установлен, приложение можно запустить через `npm`:
+
+```bash
+npm install
+npm run dev
+npm run test
+npm run typecheck
+npm run build
 ```
 
 ## Docker
