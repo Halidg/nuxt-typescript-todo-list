@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { navigateTo } from '#app';
 import { AlertTriangle, ArrowLeft, Plus, Redo2, Save, Trash2, Undo2, X } from '@lucide/vue';
 import { useNoteEditorSession } from '~/features/edit-note/model/useNoteEditorSession';
@@ -43,6 +43,15 @@ const {
 
 const cancelDialogOpen = ref(false);
 const deleteDialogOpen = ref(false);
+const todoDeleteDialogOpen = ref(false);
+const todoDeleteId = ref<string | null>(null);
+const todoDeleteMessage = computed(() => {
+  const todoText = draft.value.todos.find((todo) => todo.id === todoDeleteId.value)?.text.trim();
+
+  return todoText
+    ? `Задача «${todoText}» будет удалена из заметки.`
+    : 'Эта задача будет удалена из заметки.';
+});
 
 function readInputValue(event: Event): string {
   return event.target instanceof HTMLInputElement ? event.target.value : '';
@@ -51,6 +60,23 @@ function readInputValue(event: Event): string {
 function saveAndReturn(): void {
   save();
   void navigateTo('/');
+}
+
+function requestRemoveTodo(todoId: string): void {
+  todoDeleteId.value = todoId;
+  todoDeleteDialogOpen.value = true;
+}
+
+function confirmRemoveTodo(): void {
+  if (todoDeleteId.value) {
+    removeTodo(todoDeleteId.value);
+  }
+
+  todoDeleteId.value = null;
+}
+
+function clearTodoDeleteRequest(): void {
+  todoDeleteId.value = null;
 }
 </script>
 
@@ -148,7 +174,7 @@ function saveAndReturn(): void {
                 :key="todo.id"
                 :todo="todo"
                 @toggle="toggleTodo"
-                @remove="removeTodo"
+                @remove="requestRemoveTodo"
                 @update-text="updateTodoText"
                 @commit-text="commitTodoText"
               />
@@ -202,6 +228,16 @@ function saveAndReturn(): void {
       confirm-label="Удалить"
       danger
       @confirm="deleteCurrent"
+    />
+
+    <ConfirmDialog
+      v-model="todoDeleteDialogOpen"
+      title="Удалить задачу?"
+      :message="todoDeleteMessage"
+      confirm-label="Удалить"
+      danger
+      @confirm="confirmRemoveTodo"
+      @cancel="clearTodoDeleteRequest"
     />
 
     <ConfirmDialog
